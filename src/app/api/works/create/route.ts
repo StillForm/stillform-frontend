@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
-import { workSchema } from '@/lib/validators/work';
+import { z } from 'zod';
+import { getWorkSchema } from '@/lib/validators/work';
 
 export async function POST(req: Request) {
   try {
     const json = await req.json();
+    // Determine the schema based on the workType in the request body
+    const workSchema = getWorkSchema(json.workType);
     const body = workSchema.parse(json);
 
     // Log differently based on the type of work

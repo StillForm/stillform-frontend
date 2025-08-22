@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,22 +19,30 @@ import Image from 'next/image';
 
 type ListForSaleModalProps = {
   work: Work;
-  edition: Work['editions'][0];
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onListingComplete: (updatedWork: Work) => void;
+  onListingComplete: () => void;
 };
 
-export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListingComplete }: ListForSaleModalProps) {
-  const [price, setPrice] = useState(edition.price);
-  const [currency, setCurrency] = useState(edition.currency);
-  const [supply, setSupply] = useState(edition.supply);
+export function ListForSaleModal({ work, isOpen, onOpenChange, onListingComplete }: ListForSaleModalProps) {
+  // The modal now handles its own state based on the work's first available edition.
+  const [price, setPrice] = useState(work.editions?.[0]?.price ?? 1);
+  const [currency, setCurrency] = useState(work.editions?.[0]?.currency ?? 'ETH');
+  const [supply, setSupply] = useState(work.editions?.[0]?.supply ?? 1);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; description: string } | null>(null);
 
+  // Effect to reset state if the work prop changes
+  useEffect(() => {
+    setPrice(work.editions?.[0]?.price ?? 1);
+    setCurrency(work.editions?.[0]?.currency ?? 'ETH');
+    setSupply(work.editions?.[0]?.supply ?? 1);
+    setTermsAccepted(false);
+  }, [work]);
+
   const handleList = async () => {
-    if (!termsAccepted) return;
+    if (!termsAccepted || !work.editions || work.editions.length === 0) return;
     setIsLoading(true);
     try {
       const response = await fetch('/api/listings', {
@@ -44,10 +52,10 @@ export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListin
         },
         body: JSON.stringify({
           workId: work.id,
-          editionId: edition.editionId,
+          editionId: work.editions[0].editionId, // Safely assume edition exists here
           price,
           currency,
-          supply, // Note: The current API doesn't use this, but we send it.
+          supply,
         }),
       });
 
@@ -57,7 +65,7 @@ export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListin
       }
 
       const result = await response.json();
-      onListingComplete(result.updatedWork);
+      onListingComplete();
       
       setInfoModalContent({ title: 'Success', description: 'Your artwork has been listed successfully.' });
       onOpenChange(false);
@@ -83,6 +91,9 @@ export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListin
               <div>
                 <h3 className="font-bold">{work.title}</h3>
                 <p className="text-sm text-muted-foreground">by {work.creator.displayName}</p>
+                {(!work.editions || work.editions.length === 0) && 
+                  <p className="text-xs text-destructive mt-1">This work has no editions and cannot be listed.</p>
+                }
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -95,6 +106,7 @@ export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListin
                 value={price}
                 onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
                 className="col-span-3"
+                disabled={!work.editions || work.editions.length === 0}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -106,6 +118,7 @@ export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListin
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 className="col-span-3"
+                disabled={!work.editions || work.editions.length === 0}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -118,6 +131,7 @@ export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListin
                 value={supply}
                 onChange={(e) => setSupply(parseInt(e.target.value) || 0)}
                 className="col-span-3"
+                disabled={!work.editions || work.editions.length === 0}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -136,7 +150,7 @@ export function ListForSaleModal({ work, edition, isOpen, onOpenChange, onListin
                 Cancel
               </Button>
             </DialogClose>
-            <Button onClick={handleList} disabled={!termsAccepted || isLoading}>
+            <Button onClick={handleList} disabled={!termsAccepted || isLoading || !work.editions || work.editions.length === 0}>
               {isLoading ? 'Processing...' : 'Confirm Listing'}
             </Button>
           </DialogFooter>

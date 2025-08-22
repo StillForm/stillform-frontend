@@ -42,3 +42,5 @@ next-env.d.ts
 .idea
 .claude
 CLAUDE.md
+/public/art
+/public/avatars

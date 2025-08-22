@@ -1,34 +1,39 @@
-import { Work } from "@/app/api/mock/data";
+import { Suspense } from 'react';
+import { Work, mockWorks, mockCollection, CollectionItem } from "@/app/api/mock/data";
 import { notFound } from "next/navigation";
 import { CollectionDetailClientPage } from "./collection-detail-client-page";
 
-async function getWork(slug: string): Promise<Work | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : 'http://localhost:3000';
+function getCollectionItem(slug: string): { work: Work; item: CollectionItem } | null {
+  const work = mockWorks.find(w => w.slug === slug);
+  if (!work) return null;
 
-  const res = await fetch(`${baseUrl}/api/works/${slug}`, {
-    cache: 'no-store',
-  });
+  const item = mockCollection.find(i => i.work.slug === slug);
+  if (!item) return null;
 
-  if (!res.ok) {
-    if (res.status === 404) return null;
-    console.error(`Failed to fetch work: ${res.status} ${res.statusText}`);
-    throw new Error('Failed to fetch work');
-  }
-  return res.json();
+  return { work, item };
 }
 
-export default async function CollectionDetailPage({ params: { slug } }: { params: { slug: string } }) {
-  const work = await getWork(slug);
+// This async component isolates the data fetching logic.
+async function DetailsLoader({ slug }: { slug: string }) {
+  // We add a minimal delay to ensure this component is treated as fully async,
+  // which helps avoid certain Next.js compiler bugs.
+  await new Promise(resolve => setTimeout(resolve, 1));
+  const data = getCollectionItem(slug);
 
-  if (!work) {
+  if (!data) {
     notFound();
   }
+  return <CollectionDetailClientPage data={data} />;
+}
 
+// The main page component is now synchronous.
+export default function CollectionDetailPage({ params }: { params: { slug: string } }) {
   return (
     <div className="container py-10">
-      <CollectionDetailClientPage work={work} />
+      <Suspense fallback={<div className="text-center">Loading...</div>}>
+        <DetailsLoader slug={params.slug} />
+      </Suspense>
     </div>
   );
 }
+

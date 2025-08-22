@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getWorkSchema, WorkFormData } from "@/lib/validators/work";
+import { standardWorkSchema, blindboxWorkSchema, WorkFormData } from "@/lib/validators/work";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,8 @@ import { useCreateWorkStore } from "@/store/create-work-store";
 export function WorkForm() {
   const { formData, setFormData, setStep, workType } = useCreateWorkStore();
 
-  const currentSchema = getWorkSchema(workType);
+  const baseSchema = workType === 'blindbox' ? blindboxWorkSchema : standardWorkSchema;
+  const currentSchema = baseSchema.pick({ title: true, description: true });
 
   const {
     register,

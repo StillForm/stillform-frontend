@@ -132,7 +132,16 @@ export type CollectionItem = {
   work: Work;
   ownerAddress: string;
   purchaseDate: string;
-  status: 'owned' | 'listed' | 'physicalizing' | 'locked';
+  status: 'Owned' | 'Listed';
+  physicalStatus: 'NotRequested' | 'Physicalizing' | 'Locked';
+  history?: TransactionEvent[];
+};
+
+export type TransactionEvent = {
+  event: 'Listed' | 'Unlisted' | 'PriceChanged' | 'PhysicalizationRequested' | 'Locked';
+  timestamp: string;
+  user?: string; // Address
+  details?: Record<string, any>;
 };
 
 export type Order = {
@@ -166,21 +175,31 @@ export const mockCollection: CollectionItem[] = [
     work: mockWorks[0],
     ownerAddress: '0xdef...456',
     purchaseDate: '2025-08-15T14:30:00Z',
-    status: 'listed',
+    status: 'Listed',
+    physicalStatus: 'NotRequested',
+    history: [
+      { event: 'Listed', timestamp: '2025-08-15T15:00:00Z', user: '0xdef...456' }
+    ],
   },
   {
     tokenId: '201',
     work: mockWorks[2],
     ownerAddress: '0xdef...456',
     purchaseDate: '2025-08-10T11:00:00Z',
-    status: 'owned',
+    status: 'Owned',
+    physicalStatus: 'NotRequested',
+    history: [],
   },
   {
     tokenId: '401',
     work: mockWorks[3],
     ownerAddress: '0xdef...456',
     purchaseDate: '2025-08-05T18:00:00Z',
-    status: 'physicalizing',
+    status: 'Owned',
+    physicalStatus: 'Physicalizing',
+    history: [
+      { event: 'PhysicalizationRequested', timestamp: '2025-08-06T10:00:00Z', user: '0xdef...456' }
+    ],
   }
 ];
 

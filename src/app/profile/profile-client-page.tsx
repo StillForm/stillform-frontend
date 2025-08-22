@@ -55,16 +55,18 @@ export function ProfileClientPage({ initialOrders, initialPhysicalizations }: Pr
           {isError ? <p>Error loading collection.</p> : null}
           {data?.items.map((item: CollectionItem) => (
             <Card key={item.tokenId}>
-              <CardHeader>
-                <div className="aspect-[4/5] relative">
-                  <Image
-                    src={item.work.media[0].url}
-                    alt={item.work.title}
-                    fill
-                    className="object-cover rounded-t-lg"
-                  />
-                </div>
-              </CardHeader>
+              <Link href={`/profile/${item.work.slug}`} passHref>
+                <CardHeader>
+                  <div className="aspect-[4/5] relative">
+                    <Image
+                      src={item.work.media[0].url}
+                      alt={item.work.title}
+                      fill
+                      className="object-cover rounded-t-lg"
+                    />
+                  </div>
+                </CardHeader>
+              </Link>
               <CardContent>
                 <div className="flex justify-between items-start">
                   <CardTitle>{item.work.title}</CardTitle>
@@ -75,13 +77,6 @@ export function ProfileClientPage({ initialOrders, initialPhysicalizations }: Pr
                   Purchased on: {new Date(item.purchaseDate).toLocaleDateString()}
                 </p>
               </CardContent>
-              <CardFooter>
-                <Link href={`/profile/${item.work.slug}`} passHref>
-                  <Button variant="outline" className="w-full">
-                    View Details
-                  </Button>
-                </Link>
-              </CardFooter>
             </Card>
           ))}
         </div>

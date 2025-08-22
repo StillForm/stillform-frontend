@@ -2,7 +2,7 @@
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getWorkSchema, WorkFormData } from "@/lib/validators/work";
+import { stylesFormSchema, WorkFormData, StylesFormData } from "@/lib/validators/work";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,18 +12,15 @@ import { Progress } from "@/components/ui/progress";
 export function BlindBoxStylesForm() {
   const { formData, setFormData, setStep, workType } = useCreateWorkStore();
 
-  const currentSchema = getWorkSchema(workType);
 
   const {
     register,
     handleSubmit,
     control,
     formState: { errors, isValid },
-  } = useForm<WorkFormData>({
-    resolver: zodResolver(currentSchema),
+  } = useForm<StylesFormData>({
+    resolver: zodResolver(stylesFormSchema),
     defaultValues: {
-      ...formData,
-      workType: 'blindbox', // Important for discriminated union
       blindboxStyles: formData.blindboxStyles || [
         { name: '', probability: 50 },
         { name: '', probability: 50 },
@@ -40,8 +37,11 @@ export function BlindBoxStylesForm() {
   const watchedStyles = useWatch({ control, name: "blindboxStyles" });
   const totalProbability = watchedStyles.reduce((sum, style) => sum + (style.probability || 0), 0);
 
-  const onSubmit = (data: WorkFormData) => {
-    setFormData(data);
+  const onSubmit = (data: StylesFormData) => {
+    setFormData({
+      ...formData,
+      blindboxStyles: data.blindboxStyles,
+    });
     setStep(5); // Proceed to the next step
   };
 
@@ -77,12 +77,25 @@ export function BlindBoxStylesForm() {
               <div className="space-y-2">
                 <Label htmlFor={`blindboxStyles.${index}.name`}>Style Name</Label>
                 <Input {...register(`blindboxStyles.${index}.name`)} />
+                 {errors.blindboxStyles?.[index]?.name && (
+                  <p className="text-sm text-destructive">{errors.blindboxStyles[index]?.name?.message}</p>
+                )}
               </div>
                <div className="space-y-2">
                 <Label htmlFor={`blindboxStyles.${index}.probability`}>Probability (%)</Label>
                 <Input type="number" step="0.01" {...register(`blindboxStyles.${index}.probability`, { valueAsNumber: true })} />
+                 {errors.blindboxStyles?.[index]?.probability && (
+                  <p className="text-sm text-destructive">{errors.blindboxStyles[index]?.probability?.message}</p>
+                )}
               </div>
            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`blindboxStyles.${index}.media`}>Style Media</Label>
+              <Input id={`blindboxStyles.${index}.media`} type="file" />
+               <p className="text-xs text-muted-foreground">
+                Upload the image or video for this specific style.
+              </p>
+            </div>
            {fields.length > 2 && (
              <Button className="absolute top-2 right-2" variant="destructive" size="sm" onClick={() => remove(index)}>
               Remove

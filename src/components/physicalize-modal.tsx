@@ -25,9 +25,12 @@ const physicalizeSchema = z.object({
   addressLine1: z.string().min(5, "Address is required"),
   postalCode: z.string().optional(),
   country: z.string().min(2, "Country is required"),
-  lockAcknowledge: z.literal<boolean>(true, {
-    errorMap: () => ({ message: "You must acknowledge the NFT will be locked." }),
-  }),
+  lockAcknowledge: z.preprocess(
+    (val) => !!val,
+    z.boolean().refine((val) => val === true, {
+      message: "You must acknowledge the NFT will be locked.",
+    })
+  ),
 });
 
 type PhysicalizeFormData = z.infer<typeof physicalizeSchema>;
@@ -35,12 +38,11 @@ type PhysicalizeFormData = z.infer<typeof physicalizeSchema>;
 interface PhysicalizeModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  work: Work | null;
-  collectionItem: CollectionItem | null; // Pass the owned item to get orderId etc.
-  onSuccess: () => void;
+  work: Work;
+  onPhysicalizeComplete: () => void;
 }
 
-export function PhysicalizeModal({ isOpen, onOpenChange, work, collectionItem, onSuccess }: PhysicalizeModalProps) {
+export function PhysicalizeModal({ isOpen, onOpenChange, work, onPhysicalizeComplete }: PhysicalizeModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -53,7 +55,7 @@ export function PhysicalizeModal({ isOpen, onOpenChange, work, collectionItem, o
   });
 
   const onSubmit = async (data: PhysicalizeFormData) => {
-    if (!work || !collectionItem) return;
+    if (!work) return;
     setIsLoading(true);
     try {
       const shippingInfo = {
@@ -68,8 +70,7 @@ export function PhysicalizeModal({ isOpen, onOpenChange, work, collectionItem, o
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-              orderId: collectionItem.orderId, // Assuming collection item has orderId
-              // optionId would be selected here if there were multiple physical options
+              workId: work.id,
               shippingInfo: shippingInfo,
           })
       });
@@ -78,7 +79,7 @@ export function PhysicalizeModal({ isOpen, onOpenChange, work, collectionItem, o
           throw new Error('Failed to submit physicalization request');
       }
       
-      onSuccess();
+      onPhysicalizeComplete();
       onOpenChange(false);
       reset();
     } catch (error) {

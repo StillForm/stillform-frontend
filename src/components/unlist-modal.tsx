@@ -18,7 +18,7 @@ type UnlistModalProps = {
   work: Work;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onUnlistComplete: (updatedWork: Work) => void;
+  onUnlistComplete: () => void;
 };
 
 export function UnlistModal({ work, isOpen, onOpenChange, onUnlistComplete }: UnlistModalProps) {
@@ -38,8 +38,7 @@ export function UnlistModal({ work, isOpen, onOpenChange, onUnlistComplete }: Un
       }
 
       const result = await response.json();
-      onUnlistComplete(result.updatedWork);
-
+      onUnlistComplete();
       setInfoModalContent({ title: 'Success', description: 'Your artwork has been unlisted successfully.' });
       onOpenChange(false);
     } catch (error) {
