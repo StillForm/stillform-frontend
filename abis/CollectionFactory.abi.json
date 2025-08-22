@@ -1,0 +1,149 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_registry",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "PLATFORM_REGISTRY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "createCollection",
+    "inputs": [
+      {
+        "name": "name",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "config",
+        "type": "tuple",
+        "internalType": "struct DataStructures.CollectionConfig",
+        "components": [
+          {
+            "name": "ptype",
+            "type": "uint8",
+            "internalType": "enum DataStructures.ProductType"
+          },
+          {
+            "name": "price",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxSupply",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "unrevealedUri",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "creator",
+            "type": "address",
+            "internalType": "address payable"
+          },
+          {
+            "name": "registry",
+            "type": "address",
+            "internalType": "contract PlatformRegistry"
+          }
+        ]
+      },
+      {
+        "name": "styles",
+        "type": "tuple[]",
+        "internalType": "struct DataStructures.Style[]",
+        "components": [
+          {
+            "name": "weightBp",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxSupply",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "minted",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "baseUri",
+            "type": "string",
+            "internalType": "string"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "collection",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "CollectionCreated",
+    "inputs": [
+      {
+        "name": "creator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "collection",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "configHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "BlindboxRequiresStyles",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BlindboxWeightMismatch",
+    "inputs": []
+  }
+]
