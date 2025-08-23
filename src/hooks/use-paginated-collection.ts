@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery } from '@tanstack/react-query';
-import { CollectionItem } from '@/app/api/mock/data';
+import { CollectionItem } from '@/app/api/mock/data'; // This type might need adjustment
 import { ProfileFilters } from '@/components/profile-search-bar';
+import { useAccount } from 'wagmi';
 
 type PaginatedCollectionResponse = {
   items: CollectionItem[];
@@ -11,21 +12,27 @@ type PaginatedCollectionResponse = {
   pageSize: number;
 };
 
-const fetchCollection = async (
+const fetchMyCollection = async (
+  address: string | undefined,
   query: string,
   filters: ProfileFilters,
   page: number
 ): Promise<PaginatedCollectionResponse> => {
-  const filtersStr = JSON.stringify(filters);
+  if (!address) {
+    // Return empty state if wallet is not connected
+    return { items: [], total: 0, page: 1, pageSize: 12 };
+  }
+
   const params = new URLSearchParams({
     query,
-    filters: filtersStr,
+    status: filters.status.join(','),
     page: page.toString(),
   });
 
-  const res = await fetch(`/api/me/collections?${params.toString()}`);
+  // Targeting the real backend now
+  const res = await fetch(`http://localhost:3001/api/users/${address}/owned-items?${params.toString()}`);
   if (!res.ok) {
-    throw new Error('Failed to fetch collection');
+    throw new Error('Failed to fetch owned collection items');
   }
   return res.json();
 };
@@ -35,8 +42,11 @@ export const usePaginatedCollection = (
   filters: ProfileFilters,
   page: number
 ) => {
+  const { address } = useAccount();
+
   return useQuery({
-    queryKey: ['collection', { query, filters, page }],
-    queryFn: () => fetchCollection(query, filters, page),
+    queryKey: ['my-collection', { address, query, filters, page }],
+    queryFn: () => fetchMyCollection(address, query, filters, page),
+    enabled: !!address, // The query will only run if the user is connected
   });
 };

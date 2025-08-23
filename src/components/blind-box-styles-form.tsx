@@ -1,6 +1,8 @@
 "use client";
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import {useState, useEffect} from "react";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { stylesFormSchema, WorkFormData, StylesFormData } from "@/lib/validators/work";
 import { Button } from "@/components/ui/button";
@@ -13,10 +15,25 @@ export function BlindBoxStylesForm() {
   const { formData, setFormData, setStep, workType } = useCreateWorkStore();
 
 
+  const [previews, setPreviews] = useState<(string | null)[]>([]);
+
+  useEffect(() => {
+    // Cleanup object URLs on component unmount
+    return () => {
+      previews.forEach(url => {
+        if (url) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, []); // Empty dependency array ensures this runs only on mount and unmount
+
   const {
     register,
     handleSubmit,
     control,
+    getValues,
+    setValue,
     formState: { errors, isValid },
   } = useForm<StylesFormData>({
     resolver: zodResolver(stylesFormSchema),
@@ -90,10 +107,54 @@ export function BlindBoxStylesForm() {
               </div>
            </div>
             <div className="space-y-2">
-              <Label htmlFor={`blindboxStyles.${index}.media`}>Style Media</Label>
-              <Input id={`blindboxStyles.${index}.media`} type="file" />
+              <Label>Style Media</Label>
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor={`blindboxStyles.${index}.media`}
+                  className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+                >
+                  Choose File
+                </Label>
+                <Input
+                  id={`blindboxStyles.${index}.media`}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      const file = e.target.files[0];
+                      const currentStyles = getValues("blindboxStyles");
+                      const newStyles = currentStyles.map((style, i) => 
+                        i === index ? { ...style, rawFile: file } : style
+                      );
+                      setValue("blindboxStyles", newStyles, { shouldValidate: true, shouldDirty: true });
+
+                      // Update preview
+                      const newPreviews = [...previews];
+                      if (newPreviews[index]) {
+                        URL.revokeObjectURL(newPreviews[index]!);
+                      }
+                      newPreviews[index] = URL.createObjectURL(file);
+                      setPreviews(newPreviews);
+                    }
+                  }}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {watchedStyles[index]?.rawFile ? (watchedStyles[index].rawFile as File).name : 'No file chosen'}
+                </span>
+              </div>
+              {previews[index] && (
+                <div className="mt-2 relative w-24 h-24">
+                  <Image
+                    src={previews[index]!}
+                    alt="Style preview"
+                    fill
+                    className="object-cover rounded-md"
+                  />
+                </div>
+              )}
                <p className="text-xs text-muted-foreground">
-                Upload the image or video for this specific style.
+                Upload the image for this specific style.
               </p>
             </div>
            {fields.length > 2 && (

@@ -6,6 +6,7 @@ import { MediaUploadForm } from "./media-upload-form";
 import { EditionsForm } from "./editions-form";
 import { TypeSelectionForm } from "./type-selection-form";
 import { BlindBoxStylesForm } from "./blind-box-styles-form";
+import { ReviewAndPublish } from "./review-and-publish";
 
 export function CreateWorkWizard() {
   const { step, workType } = useCreateWorkStore();
@@ -23,22 +24,18 @@ export function CreateWorkWizard() {
       case 3:
         return <MediaUploadForm />;
       case 4:
-        if (workType === 'standard') {
-          return <EditionsForm />;
-        }
-        return <BlindBoxStylesForm />;
+        return workType === 'standard' ? <EditionsForm /> : <BlindBoxStylesForm />;
       case 5:
-        if (workType === 'blindbox') {
-          return <EditionsForm />;
-        }
-        // Fallback for standard flow if something goes wrong
-        return <div>Review and Publish (Standard)</div>;
+        return workType === 'standard' ? <ReviewAndPublish /> : <EditionsForm />;
+      case 6:
+        // This step is only for blindbox
+        return workType === 'blindbox' ? <ReviewAndPublish /> : <div>Invalid Step</div>;
       default:
         return <div>Invalid Step</div>;
     }
   };
 
-  const totalSteps = workType === 'standard' ? 4 : 5;
+  const totalSteps = workType === 'standard' ? 5 : 6;
 
   return (
     <div>

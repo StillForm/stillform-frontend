@@ -6,15 +6,23 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image"; // Using Next.js Image component for optimization
 
 export function MediaUploadForm() {
-  const { setStep } = useCreateWorkStore();
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const { setStep, setFormData, formData } = useCreateWorkStore();
+  const [file, setFile] = useState<File | null>(formData.rawFile || null);
+  const [preview, setPreview] = useState<string | null>(() => {
+    if (formData.rawFile) {
+      return URL.createObjectURL(formData.rawFile);
+    }
+    return null;
+  });
   const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      setFormData({ rawFile: selectedFile }); // Store the File object
+      
+      if (preview) URL.revokeObjectURL(preview); // Clean up previous preview
       const previewUrl = URL.createObjectURL(selectedFile);
       setPreview(previewUrl);
       setError(null);
@@ -27,6 +35,7 @@ export function MediaUploadForm() {
       URL.revokeObjectURL(preview);
     }
     setPreview(null);
+    setFormData({ rawFile: undefined }); // Clear file from store
   };
 
   const handleNext = () => {
@@ -34,9 +43,6 @@ export function MediaUploadForm() {
       setError("Please upload your artwork before proceeding.");
       return;
     }
-    // In a real app, you would handle the file upload here and
-    // then update the form data in the store with the file URL.
-    console.log("File ready for upload:", file);
     setStep(4);
   };
   

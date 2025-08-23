@@ -2,11 +2,28 @@
 
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { mainnet, polygon, bsc } from "wagmi/chains";
+import {
+  metaMaskWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { http } from 'wagmi';
+import { mainnet, polygon, bsc, sepolia } from "wagmi/chains";
 
 export const wagmiConfig = getDefaultConfig({
   appName: 'Tangible NFT Platform',
-  projectId: 'a0d828c4b63e75e39a7f34c11f6922d5', // This is a public demo project ID
-  chains: [mainnet, polygon, bsc],
+  projectId: process.env.NEXT_PUBLIC_PROJECT_ID!,
+  wallets: [
+    {
+      groupName: 'Popular',
+      wallets: [metaMaskWallet, walletConnectWallet],
+    },
+  ],
+  chains: [mainnet, polygon, bsc, sepolia],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [bsc.id]: http(),
+    [sepolia.id]: http(),
+  },
   ssr: true,
 });
