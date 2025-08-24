@@ -12,7 +12,7 @@ export function WorkForm() {
   const { formData, setFormData, setStep, workType } = useCreateWorkStore();
 
   const baseSchema = workType === 'blindbox' ? blindboxWorkSchema : standardWorkSchema;
-  const currentSchema = baseSchema.pick({ title: true, symbol: true, description: true });
+  const currentSchema = baseSchema.pick({ title: true, description: true });
 
   const {
     register,
@@ -39,14 +39,6 @@ export function WorkForm() {
         <Input id="title" {...register("title")} />
         {errors.title && (
           <p className="text-sm text-destructive">{errors.title.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="symbol">Symbol</Label>
-        <Input id="symbol" {...register("symbol")} placeholder="e.g. MYART" />
-        {errors.symbol && (
-          <p className="text-sm text-destructive">{errors.symbol.message}</p>
         )}
       </div>
       

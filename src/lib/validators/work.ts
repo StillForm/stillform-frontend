@@ -3,41 +3,27 @@ import { z } from 'zod';
 export const blindboxStyleSchema = z.object({
   name: z.string().min(1, 'Style name is required.'),
   probability: z.number().min(0.01).max(100),
-  rawFile: z.any().optional(), // For holding the file object
+  // media placeholder
 });
 
 export const standardWorkSchema = z.object({
   workType: z.literal('standard'),
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
-  symbol: z.string().min(2, 'Symbol must be at least 2 characters long.').max(10, 'Symbol must be at most 10 characters long.').regex(/^[A-Z0-9]+$/, 'Symbol must be uppercase letters and numbers.'),
   description: z.string().min(10, 'Description must be at least 10 characters long.'),
   editions: z.array(z.object({
-    price: z.preprocess(
-      (val) => (val === "" || val === null ? 0 : parseFloat(String(val))),
-      z.number().positive("Price must be a positive number.")
-    ),
-    supply: z.preprocess(
-      (val) => (val === "" || val === null ? 0 : parseInt(String(val), 10)),
-      z.number().positive("Supply must be a positive integer.").int()
-    ),
+    price: z.number().positive(),
+    supply: z.number().positive().int(),
   })).min(1, "At least one edition is required."),
 });
 
 export const blindboxWorkSchema = z.object({
   workType: z.literal('blindbox'),
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
-  symbol: z.string().min(2, 'Symbol must be at least 2 characters long.').max(10, 'Symbol must be at most 10 characters long.').regex(/^[A-Z0-9]+$/, 'Symbol must be uppercase letters and numbers.'),
   description: z.string().min(10, 'Description must be at least 10 characters long.'),
   blindboxStyles: z.array(blindboxStyleSchema).min(2, "At least two styles are required for a blind box."),
   editions: z.array(z.object({ // Blind boxes also have editions
-    price: z.preprocess(
-      (val) => (val === "" || val === null ? 0 : parseFloat(String(val))),
-      z.number().positive("Price must be a positive number.")
-    ),
-    supply: z.preprocess(
-      (val) => (val === "" || val === null ? 0 : parseInt(String(val), 10)),
-      z.number().positive("Supply must be a positive integer.").int()
-    ),
+    price: z.number().positive(),
+    supply: z.number().positive().int(),
   })).min(1, "At least one edition is required."),
 });
 
@@ -62,7 +48,7 @@ export const stylesFormSchema = z.object({
 
 export const getWorkSchema = (workType: 'standard' | 'blindbox' | null | undefined) => {
   if (workType === 'blindbox') {
-    return blindboxWorkSchema;
+    return refinedBlindboxWorkSchema;
   }
   // Default to standard schema, even if workType is not yet defined
   return standardWorkSchema;

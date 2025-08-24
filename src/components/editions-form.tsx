@@ -11,10 +11,11 @@ import { Label } from "@/components/ui/label";
 import { useCreateWorkStore } from "@/store/create-work-store";
 
 export function EditionsForm() {
-  const { formData, setFormData, setStep, workType } = useCreateWorkStore();
+  const { formData, setFormData, setStep, reset, workType } = useCreateWorkStore();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // We only need the 'editions' part of the schema for this form step
-  const currentSchema = getWorkSchema(workType).pick({ editions: true });
+  const currentSchema = getWorkSchema(workType);
 
   const {
     register,
@@ -25,6 +26,7 @@ export function EditionsForm() {
     resolver: zodResolver(currentSchema),
     defaultValues: {
       ...formData,
+      workType: workType, // Pass workType to the resolver
       editions: formData.editions || [{ price: 0.1, supply: 10 }],
     },
   });
@@ -34,18 +36,37 @@ export function EditionsForm() {
     name: "editions",
   });
 
-  const onSubmit = (data: WorkFormData) => {
-    console.log("EditionsForm onSubmit data:", JSON.stringify(data, null, 2));
-    // Sanitize data before setting it to the global store
-    const sanitizedEditions = data.editions?.map(e => ({
-      ...e,
-      price: isNaN(e.price) ? 0 : e.price,
-      supply: isNaN(e.supply) ? 0 : e.supply,
-    }));
+  const onSubmit = async (data: WorkFormData) => {
+    setIsLoading(true);
+    // Merge final step data with existing form data
+    const finalData = { ...formData, ...data };
+    setFormData(finalData);
 
-    setFormData({ ...data, editions: sanitizedEditions });
-    // Proceed to the final review step
-    setStep(workType === 'standard' ? 5 : 6);
+    try {
+      const response = await fetch('/api/works/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(finalData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create work');
+      }
+
+      const newWork = await response.json();
+      console.log("Work created:", newWork);
+      alert("Work created successfully!");
+      reset();
+      router.push('/creator/studio');
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while creating the work.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleBack = () => {
@@ -66,6 +87,7 @@ export function EditionsForm() {
                 step="0.01"
                 id={`editions.${index}.price`}
                 {...register(`editions.${index}.price`, { valueAsNumber: true })}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -74,31 +96,28 @@ export function EditionsForm() {
                 type="number"
                 id={`editions.${index}.supply`}
                 {...register(`editions.${index}.supply`, { valueAsNumber: true })}
+                disabled={isLoading}
               />
             </div>
           </div>
           {fields.length > 1 && (
-            <Button variant="destructive" size="sm" onClick={() => remove(index)}>
+            <Button variant="destructive" size="sm" onClick={() => remove(index)} disabled={isLoading}>
               Remove Edition
             </Button>
           )}
         </div>
       ))}
       
-      {/* For simplicity, this example only supports a single edition as per the contract structure.
-          The UI for multiple editions is left here for potential future expansion. */}
-      { fields.length < 1 &&
-        <Button variant="outline" type="button" onClick={() => append({ price: 0.1, supply: 1 })}>
-          Add Edition
-        </Button>
-      }
+      <Button variant="outline" type="button" onClick={() => append({ price: 0.1, supply: 1 })} disabled={isLoading}>
+        Add Another Edition
+      </Button>
 
       <div className="flex justify-between">
-        <Button variant="outline" type="button" onClick={handleBack}>
+        <Button variant="outline" type="button" onClick={handleBack} disabled={isLoading}>
           Back
         </Button>
-        <Button type="submit">
-          Next Step
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Publishing..." : "Publish Work"}
         </Button>
       </div>
     </form>

@@ -1,13 +1,23 @@
-"use client";
+import { Work, mockWorks } from "@/app/api/mock/data";
+import { notFound } from "next/navigation";
+import { CreatorArtDetailClientPage } from "./creator-art-detail-client-page";
 
-import { ArtDetailClientPage } from "@/app/art/[slug]/art-detail-client-page";
+// No longer using fetch, directly access mock data
+async function getWork(slug: string): Promise<Work | null> {
+  const work = mockWorks.find(w => w.slug === slug);
+  return work || null;
+}
 
-export default function CreatorArtDetailPage() {
+export default async function CreatorArtDetailPage({ params }: { params: { slug: string } }) {
+  const work = await getWork(params.slug);
+
+  if (!work) {
+    notFound();
+  }
+
   return (
     <div className="container py-10">
-      {/* We reuse the existing public detail page component and pass a prop 
-          to tell it to render the creator-specific action buttons. */}
-      <ArtDetailClientPage isCreatorView={true} />
+      <CreatorArtDetailClientPage work={work} />
     </div>
   );
 }
