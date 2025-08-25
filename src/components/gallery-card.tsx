@@ -27,6 +27,7 @@ export function GalleryCard({
             width={500}
             height={625} // 4:5 aspect ratio
             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+            unoptimized
           />
         </div>
       </Link>
@@ -40,6 +41,7 @@ export function GalleryCard({
               width={24}
               height={24}
               className="rounded-full"
+              unoptimized
             />
             <p className="ml-2 text-sm text-muted-foreground">
               {work.creator.displayName}

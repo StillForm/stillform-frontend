@@ -1,13 +1,11 @@
 "use client";
 
-import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit';
-import { ConnectButton as SuiConnectButton } from '@mysten/dapp-kit';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
+/**
+ * Renders the RainbowKit connect button.
+ * This component is simplified to only support EVM wallets.
+ */
 export function WalletConnect() {
-  return (
-    <div className="flex items-center gap-2">
-      <RainbowConnectButton />
-      <SuiConnectButton />
-    </div>
-  );
+  return <ConnectButton />;
 }
